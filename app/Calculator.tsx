@@ -9,6 +9,26 @@ import {
   MAX_SKILL_XP,
   type SkillProgress,
 } from "@/lib/skills";
+import { formatSpan, formatPeriod, gainsMessage } from "@/lib/gains";
+
+interface Snapshot {
+  savedAt: string; // ISO timestamp
+  totalXp: number;
+  perSkill: Record<string, number>;
+}
+
+const snapKey = (username: string) =>
+  `htm:snap:${username.trim().toLowerCase()}`;
+
+function sumXp(progress: Record<string, SkillProgress>): number {
+  return SKILLS.reduce((sum, s) => sum + (progress[s.key]?.xp ?? 0), 0);
+}
+
+function daysBetween(fromIso: string): number {
+  const then = new Date(fromIso).getTime();
+  if (!Number.isFinite(then)) return 0;
+  return Math.max(0, Math.floor((Date.now() - then) / 86_400_000));
+}
 
 export interface HiscoresData {
   username: string;
@@ -46,6 +66,10 @@ export default function Calculator({
 
   const [shareCount, setShareCount] = useState<number | null>(initialShareCount);
   const [shareLabel, setShareLabel] = useState("Share my grind");
+
+  // Daily progress tracker (localStorage-backed, per username).
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [gainsLabel, setGainsLabel] = useState("Share gains");
 
   async function lookup(name: string) {
     const n = name.trim();
@@ -90,10 +114,98 @@ export default function Calculator({
     };
   }, []);
 
+  // Load this account's saved snapshot from localStorage when the loaded
+  // account changes (an external-store read, so it can't be derived state).
+  useEffect(() => {
+    if (!data) return;
+    let snap: Snapshot | null = null;
+    try {
+      const raw = localStorage.getItem(snapKey(data.username));
+      if (raw) snap = JSON.parse(raw) as Snapshot;
+    } catch {
+      snap = null;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSnapshot(snap);
+  }, [data]);
+
   const result = useMemo(() => {
     if (!data) return null;
     return computeHoursToMax(data.progress, rates);
   }, [data, rates]);
+
+  // Gains since the saved snapshot (current live XP minus the baseline).
+  const gains = useMemo(() => {
+    if (!data || !snapshot) return null;
+    const currentTotal = sumXp(data.progress);
+    const gainedXp = currentTotal - snapshot.totalXp;
+    const days = daysBetween(snapshot.savedAt);
+    const perSkill = SKILLS.map((s) => ({
+      key: s.key,
+      name: s.name,
+      icon: s.icon,
+      gained: (data.progress[s.key]?.xp ?? 0) - (snapshot.perSkill[s.key] ?? 0),
+    }))
+      .filter((s) => s.gained > 0)
+      .sort((a, b) => b.gained - a.gained);
+    return { gainedXp, days, topSkills: perSkill.slice(0, 3) };
+  }, [data, snapshot]);
+
+  function saveSnapshot() {
+    if (!data) return;
+    const snap: Snapshot = {
+      savedAt: new Date().toISOString(),
+      totalXp: sumXp(data.progress),
+      perSkill: Object.fromEntries(
+        SKILLS.map((s) => [s.key, data.progress[s.key]?.xp ?? 0])
+      ),
+    };
+    try {
+      localStorage.setItem(snapKey(data.username), JSON.stringify(snap));
+      setSnapshot(snap);
+    } catch {
+      // localStorage unavailable (private mode) — nothing else to do
+    }
+  }
+
+  async function shareGains() {
+    if (!data || !gains || gains.gainedXp <= 0) return;
+    const url = `${window.location.origin}/u/${encodeURIComponent(
+      data.username
+    )}/gains/${formatSpan(gains.gainedXp, gains.days)}`;
+    const text = `${data.username} gained ${formatNumber(
+      gains.gainedXp
+    )} XP ${formatPeriod(gains.days)} in OSRS. ${gainsMessage(gains.gainedXp).message}`;
+    let shared = false;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "OSRS Hours to Max", text, url });
+        shared = true;
+      } else {
+        await navigator.clipboard.writeText(url);
+        setGainsLabel("Link copied!");
+        shared = true;
+      }
+    } catch {
+      try {
+        await navigator.clipboard.writeText(url);
+        setGainsLabel("Link copied!");
+        shared = true;
+      } catch {
+        setGainsLabel("Copy failed");
+      }
+    }
+    if (shared) {
+      try {
+        const res = await fetch("/api/share", { method: "POST" });
+        const j = await res.json();
+        if (typeof j.count === "number") setShareCount(j.count);
+      } catch {
+        // best-effort
+      }
+    }
+    setTimeout(() => setGainsLabel("Share gains"), 2500);
+  }
 
   function setRate(key: string, value: string) {
     setRates((prev) => {
@@ -311,6 +423,110 @@ export default function Calculator({
                   : `⚔ ${formatNumber(shareCount)} scapers have shared their grind`}
             </p>
           </div>
+
+          {/* Daily gains tracker */}
+          <section className="rs-panel mb-6 p-4 sm:p-5">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h3 className="rs-heading text-lg sm:text-xl">Gains tracker</h3>
+              {snapshot && (
+                <button
+                  type="button"
+                  onClick={saveSnapshot}
+                  className="rs-button px-3 py-1 text-sm"
+                  title="Reset the baseline to today's XP"
+                >
+                  Save today
+                </button>
+              )}
+            </div>
+
+            {!snapshot ? (
+              <div className="flex flex-col items-start gap-3">
+                <p className="rs-shadow text-sm text-[var(--rs-text-dim)]">
+                  Save a snapshot of {data.username}&apos;s XP today, then come
+                  back another day to see exactly how much you&apos;ve gained —
+                  and share a card to flex your grind. Saved on this device only.
+                </p>
+                <button
+                  type="button"
+                  onClick={saveSnapshot}
+                  className="rs-button px-5 py-2 text-base"
+                >
+                  Save today&apos;s snapshot ⚔
+                </button>
+              </div>
+            ) : (
+              <div>
+                <p className="rs-shadow text-sm text-[var(--rs-text-dim)]">
+                  Tracking since{" "}
+                  {new Date(snapshot.savedAt).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}{" "}
+                  &middot; {formatPeriod(gains?.days ?? 0)}
+                </p>
+
+                {gains && gains.gainedXp > 0 ? (
+                  <>
+                    <div
+                      className="rs-heading mt-2 text-3xl sm:text-4xl"
+                      style={{ color: "var(--rs-green)" }}
+                    >
+                      +{formatNumber(gains.gainedXp)} XP
+                    </div>
+                    <p className="rs-shadow mt-1 text-sm sm:text-base">
+                      <span className="text-[var(--rs-orange)]">
+                        {gainsMessage(gains.gainedXp).label}:
+                      </span>{" "}
+                      {gainsMessage(gains.gainedXp).message}
+                    </p>
+
+                    {gains.topSkills.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-3">
+                        {gains.topSkills.map((s) => (
+                          <div
+                            key={s.key}
+                            className="rs-skill flex items-center gap-2 px-2 py-1"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`/icons/${s.icon}`}
+                              alt={s.name}
+                              width={20}
+                              height={20}
+                              className="rs-icon shrink-0"
+                            />
+                            <span
+                              className="rs-shadow text-sm"
+                              style={{ color: "var(--rs-green)" }}
+                            >
+                              +{formatNumber(s.gained)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        onClick={shareGains}
+                        className="rs-button px-5 py-2 text-base"
+                      >
+                        {gainsLabel} 📜
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <p className="rs-shadow mt-2 text-sm sm:text-base">
+                    No new XP since your last snapshot — get grinding, then check
+                    back to share your gains! ⚔
+                  </p>
+                )}
+              </div>
+            )}
+          </section>
 
           {/* Controls */}
           <div className="mb-3 flex items-center justify-between">

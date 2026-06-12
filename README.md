@@ -16,6 +16,7 @@ icons, stone panels and a parchment scroll for the result.
 - 🟢 **Maxed detection** — already-99 skills are marked done; a fully maxed account gets a little celebration.
 - 🔗 **Shareable result pages** — every lookup gets a clean `/u/{username}` URL with a per-user social preview card (e.g. "Faux — 1,356 hours to max"), so friends see your grind when you share it.
 - ⚔️ **Live share counter** — "N scapers have shared their grind", backed by Supabase.
+- 📜 **Daily gains tracker** — save a snapshot of your XP, come back later, and see exactly how much you've gained. Generates a shareable gains card with motivational copy that scales with the grind ("Warming Up" → "Legendary"). Snapshots are stored in your browser's localStorage.
 - 🎨 **Authentic OSRS UI** — RuneScape typeface, official skill sprites, riveted interface panels.
 - ✨ **Animated sprites** — a floating Max cape goal, bobbing coins, pulsing maxed-skill icons, and the in-game Max cape emote (with rising-coin confetti) when you've maxed.
 
@@ -65,11 +66,13 @@ app/
   fonts/                  # RuneScape typefaces (self-hosted via next/font)
   Calculator.tsx          # the interactive calculator (client component)
   u/[username]/           # shareable per-user page + dynamic OG image
+  u/[username]/gains/[span]/  # shareable "XP gained" card (span = gainedXP-days)
   api/share/route.ts      # share counter (GET reads, POST increments)
 lib/
   skills.ts               # skill data, defaults, hours-to-max math
   hiscores.ts             # hiscores fetch + CSV parser + username validation
   shares.ts               # Supabase counter RPC wrapper
+  gains.ts                # motivational tiers + gains-span encode/parse
 public/icons/             # 23 skill sprites
 test/                     # vitest specs
 ```
