@@ -527,18 +527,18 @@ export default function Calculator({
 
           {/* Share bar */}
           <div className="mb-6 flex flex-col items-center gap-2">
-            <div className="flex flex-wrap items-center justify-center gap-2">
+            <div className="grid w-full max-w-md grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={share}
-                className="rs-button px-6 py-2 text-base sm:text-lg"
+                className="rs-button w-full whitespace-nowrap px-2 py-2 text-sm sm:text-lg"
               >
                 {shareLabel} ⚔
               </button>
               <button
                 type="button"
                 onClick={downloadCard}
-                className="rs-button px-4 py-2 text-base sm:text-lg"
+                className="rs-button w-full whitespace-nowrap px-2 py-2 text-sm sm:text-lg"
                 title="Save the card as an image (great for posting to X / Instagram)"
               >
                 {downloadLabel}
