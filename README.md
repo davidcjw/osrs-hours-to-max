@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OSRS Hours to Max ⏳
 
-## Getting Started
+An Old School RuneScape **"hours to max"** calculator. Enter your username, pull
+your live stats from the official OSRS hiscores, set your XP/hr per skill (or use
+sensible community averages), and see exactly how many hours stand between you and
+a maxed account.
 
-First, run the development server:
+Built to look and feel like the in-game interface — real RuneScape fonts, skill
+icons, stone panels and a parchment scroll for the result.
+
+## Features
+
+- 🔎 **Live hiscores lookup** — type an IGN, get current level + XP for all 23 skills.
+- ⚙️ **Per-skill XP/hr** — override any skill's rate; blanks fall back to a reasonable average.
+- ⏱️ **Instant totals** — total hours to max, an `Xd Yh` breakdown, and per-skill estimates that update as you type.
+- 🟢 **Maxed detection** — already-99 skills are marked done; a fully maxed account gets a little celebration.
+- 🎨 **Authentic OSRS UI** — RuneScape typeface, official skill sprites, riveted interface panels.
+
+## How it works
+
+- **Max** = level 99 in all 23 skills = `13,034,431` XP each (`299,791,913` total).
+- The OSRS hiscores API blocks browser CORS, so lookups go through a small
+  server-side proxy at `app/api/hiscores/route.ts`.
+- Hours per skill = `remaining XP ÷ XP per hour`. Defaults live in `lib/skills.ts`.
+
+## Tech stack
+
+- [Next.js 16](https://nextjs.org/) (App Router, Turbopack)
+- React 19 + TypeScript
+- Tailwind CSS v4
+- [Vitest](https://vitest.dev/) for the calculation/parsing logic
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Other scripts:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build    # production build
+npm run lint     # eslint
+npm test         # vitest (logic + hiscores parsing)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project structure
 
-## Learn More
+```
+app/
+  api/hiscores/route.ts   # server-side hiscores proxy
+  page.tsx                # the calculator UI (client component)
+  layout.tsx              # fonts + metadata
+  globals.css             # OSRS theme
+  fonts/                  # RuneScape typefaces (self-hosted via next/font)
+lib/
+  skills.ts               # skill data, defaults, hours-to-max math
+  hiscores.ts             # hiscores CSV parser + username validation
+public/icons/             # 23 skill sprites
+test/                     # vitest specs
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Deployed on [Vercel](https://vercel.com/). Pushing to `master` triggers an
+automatic production deploy.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Credits & legal
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This is a **fan project** — not affiliated with, endorsed by, or sponsored by
+Jagex. RuneScape and Old School RuneScape are trademarks of Jagex Ltd. Skill
+sprites are from the [OSRS Wiki](https://oldschool.runescape.wiki/); the
+RuneScape fonts are from [RuneStar/fonts](https://github.com/RuneStar/fonts).
+Stats are read from the official OSRS hiscores. Provided free, for fun.

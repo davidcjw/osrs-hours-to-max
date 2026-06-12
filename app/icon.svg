@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <rect width="32" height="32" fill="#1b1109"/>
+  <rect x="3" y="3" width="26" height="26" fill="none" stroke="#6b5a3e" stroke-width="2"/>
+  <!-- hourglass frame -->
+  <rect x="9" y="6" width="14" height="2" fill="#ff981f"/>
+  <rect x="9" y="24" width="14" height="2" fill="#ff981f"/>
+  <!-- glass outline -->
+  <path d="M11 8 L21 8 L21 11 L16 16 L21 21 L21 24 L11 24 L11 21 L16 16 L11 11 Z" fill="#3e352b" stroke="#ffce5c" stroke-width="1"/>
+  <!-- sand -->
+  <path d="M12 9 L20 9 L16 14 Z" fill="#ffff00"/>
+  <path d="M14 23 L18 23 L16 19 Z" fill="#ffff00"/>
+  <rect x="15" y="15" width="2" height="6" fill="#ffff00"/>
+</svg>
