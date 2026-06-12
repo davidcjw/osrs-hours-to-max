@@ -12,6 +12,7 @@ icons, stone panels and a parchment scroll for the result.
 
 - 🔎 **Live hiscores lookup** — type an IGN, get current level + XP for all 24 skills.
 - ⚙️ **Per-skill XP/hr** — override any skill's rate; blanks fall back to a reasonable average.
+- 🎯 **Method presets** — pick a training method per skill (e.g. Woodcutting → Teak 2-tick, Prayer → gilded altar) from a dropdown to auto-fill a realistic XP/hr, or type your own.
 - ⏱️ **Instant totals** — total hours to max, an `Xd Yh` breakdown, and per-skill estimates that update as you type.
 - 🟢 **Maxed detection** — already-99 skills are marked done; a fully maxed account gets a little celebration.
 - 🔗 **Shareable result pages** — every lookup gets a clean `/u/{username}` URL with a per-user social preview card (e.g. "Faux — 1,356 hours to max"), so friends see your grind when you share it.

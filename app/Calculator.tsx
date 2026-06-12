@@ -7,6 +7,7 @@ import {
   formatDuration,
   formatNumber,
   MAX_SKILL_XP,
+  type Skill,
   type SkillProgress,
 } from "@/lib/skills";
 import { formatSpan, formatPeriod, gainsMessage } from "@/lib/gains";
@@ -19,6 +20,17 @@ interface Snapshot {
 
 const snapKey = (username: string) =>
   `htm:snap:${username.trim().toLowerCase()}`;
+
+// Sentinel for the (disabled) "Custom" option shown when the entered XP/hr
+// doesn't match any preset method.
+const CUSTOM = "__custom__";
+
+/** Which method dropdown option reflects the current rate. */
+function selectedMethod(skill: Skill, rate: number | ""): string {
+  if (rate === "") return ""; // blank => "Average (default)"
+  const match = skill.methods.find((m) => m.xpHr === rate);
+  return match ? match.name : CUSTOM;
+}
 
 function sumXp(progress: Record<string, SkillProgress>): number {
   return SKILLS.reduce((sum, s) => sum + (progress[s.key]?.xp ?? 0), 0);
@@ -217,6 +229,16 @@ export default function Calculator({
       }
       return next;
     });
+  }
+
+  // Picking a method preset fills that skill's XP/hr; "" resets to the average.
+  function pickMethod(skill: Skill, methodName: string) {
+    if (methodName === "" || methodName === CUSTOM) {
+      setRate(skill.key, "");
+      return;
+    }
+    const method = skill.methods.find((m) => m.name === methodName);
+    if (method) setRate(skill.key, String(method.xpHr));
   }
 
   async function share() {
@@ -586,25 +608,43 @@ export default function Calculator({
                           Maxed ✓
                         </div>
                       ) : (
-                        <div className="mt-1 flex items-center gap-2">
-                          <input
-                            type="number"
-                            min={0}
-                            className="rs-input w-24 px-2 py-1 text-sm"
-                            placeholder={formatNumber(skill.defaultXpHr)}
-                            value={rates[row.key] ?? ""}
-                            onChange={(e) => setRate(row.key, e.target.value)}
-                            aria-label={`${skill.name} XP per hour`}
-                          />
-                          <span className="rs-shadow text-xs text-[var(--rs-text-dim)]">
-                            xp/hr{row.usedDefault ? " (avg)" : ""}
-                          </span>
-                          <span
-                            className="rs-shadow ml-auto shrink-0 text-sm"
-                            title={`${formatNumber(row.remainingXp)} XP left`}
+                        <div className="mt-1 flex flex-col gap-1.5">
+                          <select
+                            className="rs-input w-full px-2 py-1 text-sm"
+                            value={selectedMethod(skill, rates[row.key] ?? "")}
+                            onChange={(e) => pickMethod(skill, e.target.value)}
+                            aria-label={`${skill.name} training method`}
                           >
-                            {formatDuration(row.hours)}
-                          </span>
+                            <option value="">Average (default)</option>
+                            {skill.methods.map((m) => (
+                              <option key={m.name} value={m.name}>
+                                {m.name} · {formatNumber(m.xpHr)}/hr
+                              </option>
+                            ))}
+                            <option value={CUSTOM} disabled>
+                              Custom
+                            </option>
+                          </select>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min={0}
+                              className="rs-input w-24 px-2 py-1 text-sm"
+                              placeholder={formatNumber(skill.defaultXpHr)}
+                              value={rates[row.key] ?? ""}
+                              onChange={(e) => setRate(row.key, e.target.value)}
+                              aria-label={`${skill.name} XP per hour`}
+                            />
+                            <span className="rs-shadow text-xs text-[var(--rs-text-dim)]">
+                              xp/hr{row.usedDefault ? " (avg)" : ""}
+                            </span>
+                            <span
+                              className="rs-shadow ml-auto shrink-0 text-sm"
+                              title={`${formatNumber(row.remainingXp)} XP left`}
+                            >
+                              {formatDuration(row.hours)}
+                            </span>
+                          </div>
                         </div>
                       )}
                     </div>

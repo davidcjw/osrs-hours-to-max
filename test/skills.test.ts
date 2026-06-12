@@ -36,6 +36,26 @@ describe("skill data", () => {
   it("every skill has a positive default XP/hr", () => {
     for (const s of SKILLS) expect(s.defaultXpHr).toBeGreaterThan(0);
   });
+
+  it("every skill has at least two named method presets", () => {
+    for (const s of SKILLS) {
+      expect(s.methods.length).toBeGreaterThanOrEqual(2);
+      for (const m of s.methods) {
+        expect(m.name.trim().length).toBeGreaterThan(0);
+        expect(m.xpHr).toBeGreaterThan(0);
+        expect(Number.isInteger(m.xpHr)).toBe(true);
+      }
+    }
+  });
+
+  it("has unique method names and unique XP/hr per skill (so presets map 1:1 to a rate)", () => {
+    for (const s of SKILLS) {
+      const names = s.methods.map((m) => m.name);
+      const rates = s.methods.map((m) => m.xpHr);
+      expect(new Set(names).size).toBe(names.length);
+      expect(new Set(rates).size).toBe(rates.length);
+    }
+  });
 });
 
 describe("computeHoursToMax", () => {
