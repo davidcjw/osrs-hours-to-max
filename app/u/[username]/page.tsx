@@ -74,6 +74,7 @@ export default async function UserPage({ params }: Props) {
         username: res.username,
         totalLevel: res.totalLevel,
         progress: res.progress,
+        accountType: res.accountType,
       }}
       initialShareCount={shareCount}
     />

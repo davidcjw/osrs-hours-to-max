@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseSpan, formatPeriod, gainsMessage } from "@/lib/gains";
 import { formatNumber } from "@/lib/skills";
+import { fetchHiscores } from "@/lib/hiscores";
 
 export const runtime = "nodejs";
 export const alt = "OSRS XP gains card";
@@ -28,6 +29,20 @@ export default async function Image({
   const coinsSrc = `data:image/png;base64,${readFileSync(
     join(spriteDir, "Coins_10000.png")
   ).toString("base64")}`;
+
+  // Ironman badge next to the name (looks up the account's board membership).
+  const badgeFiles: Record<string, string> = {
+    ironman: "Ironman_chat_badge.png",
+    hardcore: "Hardcore_ironman_chat_badge.png",
+    ultimate: "Ultimate_ironman_chat_badge.png",
+  };
+  const acct = await fetchHiscores(name);
+  const badgeFile = acct.ok ? badgeFiles[acct.accountType] : undefined;
+  const badgeSrc = badgeFile
+    ? `data:image/png;base64,${readFileSync(
+        join(spriteDir, badgeFile)
+      ).toString("base64")}`
+    : null;
 
   const xp = parsed?.xp ?? 0;
   const days = parsed?.days ?? 0;
@@ -72,6 +87,7 @@ export default async function Image({
             }}
           >
             <img src={coinsSrc} width={40} height={40} alt="" />
+            {badgeSrc ? <img src={badgeSrc} height={34} alt="" /> : null}
             <div style={{ fontSize: 32, color: "#c9b27f" }}>{headerLine}</div>
           </div>
           <div

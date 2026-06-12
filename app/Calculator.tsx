@@ -10,6 +10,7 @@ import {
   type Skill,
   type SkillProgress,
 } from "@/lib/skills";
+import type { AccountType } from "@/lib/hiscores";
 import { formatSpan, formatPeriod, gainsMessage } from "@/lib/gains";
 import { track } from "@vercel/analytics";
 import MethodSelect from "./MethodSelect";
@@ -22,6 +23,23 @@ interface Snapshot {
 
 const snapKey = (username: string) =>
   `htm:snap:${username.trim().toLowerCase()}`;
+
+// Ironman chat badges (from the OSRS Wiki) by account type. "normal" => none.
+const ACCOUNT_BADGE: Record<
+  AccountType,
+  { src: string; label: string } | null
+> = {
+  normal: null,
+  ironman: { src: "/sprites/Ironman_chat_badge.png", label: "Ironman" },
+  hardcore: {
+    src: "/sprites/Hardcore_ironman_chat_badge.png",
+    label: "Hardcore Ironman",
+  },
+  ultimate: {
+    src: "/sprites/Ultimate_ironman_chat_badge.png",
+    label: "Ultimate Ironman",
+  },
+};
 
 /**
  * Fetch one of the dynamic OpenGraph cards as a PNG File so it can ride along
@@ -68,6 +86,27 @@ async function downloadShareImage(
   return true;
 }
 
+/** The Ironman helmet badge next to a name, or nothing for normal accounts. */
+function AccountBadge({
+  type,
+  className,
+}: {
+  type?: AccountType;
+  className?: string;
+}) {
+  const badge = type ? ACCOUNT_BADGE[type] : null;
+  if (!badge) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={badge.src}
+      alt={badge.label}
+      title={badge.label}
+      className={`rs-icon inline-block w-auto align-middle ${className ?? ""}`}
+    />
+  );
+}
+
 function sumXp(progress: Record<string, SkillProgress>): number {
   return SKILLS.reduce((sum, s) => sum + (progress[s.key]?.xp ?? 0), 0);
 }
@@ -82,6 +121,7 @@ export interface HiscoresData {
   username: string;
   totalLevel: number;
   progress: Record<string, SkillProgress>;
+  accountType?: AccountType;
 }
 
 interface CalculatorProps {
@@ -497,6 +537,7 @@ export default function Calculator({
                   className="rs-shadow text-2xl font-bold sm:text-3xl"
                   style={{ fontFamily: "var(--font-rs-bold)" }}
                 >
+                  <AccountBadge type={data.accountType} className="mr-2 h-6" />
                   {data.username} is MAXED! 🏆
                 </h2>
                 <p className="rs-shadow mt-2 text-lg">
@@ -506,6 +547,7 @@ export default function Calculator({
             ) : (
               <>
                 <p className="rs-shadow text-base uppercase tracking-wider">
+                  <AccountBadge type={data.accountType} className="mr-1.5 h-4" />
                   {data.username} &middot; Total level {formatNumber(data.totalLevel)}
                 </p>
                 <h2

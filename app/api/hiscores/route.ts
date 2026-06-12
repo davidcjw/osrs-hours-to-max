@@ -11,6 +11,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
-  const { username, totalLevel, progress } = result;
-  return NextResponse.json({ username, totalLevel, progress });
+  const { username, totalLevel, progress, accountType } = result;
+  return NextResponse.json({ username, totalLevel, progress, accountType });
 }

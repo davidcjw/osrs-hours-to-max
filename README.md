@@ -11,6 +11,7 @@ icons, stone panels and a parchment scroll for the result.
 ## Features
 
 - 🔎 **Live hiscores lookup** — type an IGN, get current level + XP for all 24 skills.
+- 🛡️ **Ironman detection** — Ironman / Hardcore / Ultimate accounts get their helmet badge next to the name, in the app and on the shareable cards (detected from which hiscores boards the account appears on).
 - ⚙️ **Per-skill XP/hr** — override any skill's rate; blanks fall back to a reasonable average.
 - 🎯 **Method presets** — pick a training method per skill (e.g. Woodcutting → Teak 2-tick, Prayer → gilded altar) from a dropdown to auto-fill a realistic XP/hr, or type your own.
 - ⏱️ **Instant totals** — total hours to max, an `Xd Yh` breakdown, and per-skill estimates that update as you type.

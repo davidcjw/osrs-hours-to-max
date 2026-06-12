@@ -94,6 +94,25 @@ describe("parseHiscores", () => {
   });
 });
 
+// Mock the four hiscores boards by URL. The main board returns the sample
+// body; each variant returns 200 (listed) or 404 (not listed) per the flags.
+function mockBoards(flags: {
+  ironman?: boolean;
+  hardcore?: boolean;
+  ultimate?: boolean;
+}) {
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const url = String(input);
+    const board = (present?: boolean) =>
+      new Response(present ? "x" : "", { status: present ? 200 : 404 });
+    if (url.includes("hiscore_oldschool_ultimate")) return board(flags.ultimate);
+    if (url.includes("hiscore_oldschool_hardcore_ironman"))
+      return board(flags.hardcore);
+    if (url.includes("hiscore_oldschool_ironman")) return board(flags.ironman);
+    return new Response(sampleBody(), { status: 200 }); // main board
+  });
+}
+
 describe("fetchHiscores", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -129,5 +148,40 @@ describe("fetchHiscores", () => {
   it("maps a network failure to a 502 result", async () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("network down"));
     expect(await fetchHiscores("Zezima")).toMatchObject({ ok: false, status: 502 });
+  });
+
+  it("detects a normal account (not on the Ironman board)", async () => {
+    mockBoards({ ironman: false });
+    const res = await fetchHiscores("Zezima");
+    expect(res).toMatchObject({ ok: true, accountType: "normal" });
+  });
+
+  it("detects an Ironman (on ironman board only)", async () => {
+    mockBoards({ ironman: true });
+    const res = await fetchHiscores("SomeIron");
+    expect(res).toMatchObject({ ok: true, accountType: "ironman" });
+  });
+
+  it("detects a Hardcore Ironman (hardcore wins over plain ironman)", async () => {
+    mockBoards({ ironman: true, hardcore: true });
+    const res = await fetchHiscores("HCIM");
+    expect(res).toMatchObject({ ok: true, accountType: "hardcore" });
+  });
+
+  it("detects an Ultimate Ironman (ultimate wins over ironman)", async () => {
+    mockBoards({ ironman: true, ultimate: true });
+    const res = await fetchHiscores("UIM");
+    expect(res).toMatchObject({ ok: true, accountType: "ultimate" });
+  });
+
+  it("falls back to normal if account-type detection throws", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      if (String(input).includes("hiscore_oldschool/")) {
+        return new Response(sampleBody(), { status: 200 }); // main succeeds
+      }
+      throw new Error("variant board down");
+    });
+    const res = await fetchHiscores("Zezima");
+    expect(res).toMatchObject({ ok: true, accountType: "normal" });
   });
 });

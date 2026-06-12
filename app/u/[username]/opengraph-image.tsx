@@ -29,6 +29,19 @@ export default async function Image({
   ).toString("base64")}`;
 
   const res = await fetchHiscores(name);
+
+  // Ironman badge next to the name, if any.
+  const badgeFiles: Record<string, string> = {
+    ironman: "Ironman_chat_badge.png",
+    hardcore: "Hardcore_ironman_chat_badge.png",
+    ultimate: "Ultimate_ironman_chat_badge.png",
+  };
+  const badgeFile = res.ok ? badgeFiles[res.accountType] : undefined;
+  const badgeSrc = badgeFile
+    ? `data:image/png;base64,${readFileSync(
+        join(spriteDir, badgeFile)
+      ).toString("base64")}`
+    : null;
   let headline = "Time to Max Calculator";
   let sub = "Look up any OSRS account";
   let totalLevelLine = "";
@@ -85,15 +98,24 @@ export default async function Image({
           </div>
           <div
             style={{
-              fontFamily: "RSBold",
-              fontSize: 64,
-              color: "#ffce5c",
-              textShadow: "3px 3px 0 #000",
-              lineHeight: 1.05,
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
               marginTop: 6,
             }}
           >
-            {displayName}
+            {badgeSrc ? <img src={badgeSrc} height={52} alt="" /> : null}
+            <div
+              style={{
+                fontFamily: "RSBold",
+                fontSize: 64,
+                color: "#ffce5c",
+                textShadow: "3px 3px 0 #000",
+                lineHeight: 1.05,
+              }}
+            >
+              {displayName}
+            </div>
           </div>
           <div
             style={{
