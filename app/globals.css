@@ -204,3 +204,132 @@ body {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* ---------------------------------------------------------------------------
+ * Sprite animations
+ * ------------------------------------------------------------------------- */
+
+/* gentle vertical bob (capes, items) */
+@keyframes rs-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* pulsing golden glow */
+@keyframes rs-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(255, 206, 92, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(255, 152, 31, 0.9));
+  }
+}
+
+/* small coin bob, slightly springy */
+@keyframes rs-coin-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(4deg);
+  }
+}
+
+/* pulse used for maxed skill icons */
+@keyframes rs-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 rgba(75, 212, 75, 0));
+  }
+  50% {
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 5px rgba(75, 212, 75, 0.8));
+  }
+}
+
+/* coins drifting upward + fading (celebration) */
+@keyframes rs-rise {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+.rs-float {
+  animation: rs-float 3s ease-in-out infinite;
+}
+
+/* combine float + glow on the goal cape */
+.rs-cape {
+  animation:
+    rs-float 3.5s ease-in-out infinite,
+    rs-glow 2.2s ease-in-out infinite;
+}
+
+.rs-coin {
+  animation: rs-coin-bob 2s ease-in-out infinite;
+  image-rendering: pixelated;
+}
+.rs-coin--delay {
+  animation-delay: 0.6s;
+}
+
+/* hover lift for skill icons */
+.rs-skill .rs-icon {
+  transition: transform 0.12s ease;
+}
+.rs-skill:hover .rs-icon {
+  transform: scale(1.25) rotate(-6deg);
+}
+
+/* maxed skills gently pulse to celebrate */
+.rs-skill--maxed .rs-icon {
+  animation: rs-pulse 2.4s ease-in-out infinite;
+}
+
+/* rising coins layer for the maxed celebration */
+.rs-rise-coin {
+  position: absolute;
+  bottom: 10%;
+  width: 22px;
+  height: 22px;
+  image-rendering: pixelated;
+  animation: rs-rise 2.6s ease-in infinite;
+  pointer-events: none;
+}
+
+/* dark "game viewport" frame for the (non-transparent) emote GIF */
+.rs-emote-frame {
+  background: radial-gradient(circle at 50% 35%, #2a2418, #000 90%);
+  border: 2px solid var(--rs-border-dark);
+  box-shadow:
+    inset 0 0 0 2px #6b5a3e,
+    inset 0 0 24px rgba(0, 0, 0, 0.9),
+    0 0 14px rgba(255, 152, 31, 0.35);
+  padding: 6px 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-float,
+  .rs-cape,
+  .rs-coin,
+  .rs-skill--maxed .rs-icon,
+  .rs-rise-coin {
+    animation: none;
+  }
+}

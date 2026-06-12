@@ -72,10 +72,32 @@ export default function Home() {
   return (
     <main className="mx-auto w-full max-w-5xl px-3 py-6 sm:px-6 sm:py-10">
       {/* Header */}
-      <header className="mb-6 text-center">
-        <h1 className="rs-title text-3xl sm:text-5xl leading-tight">
-          Hours&nbsp;to&nbsp;Max
-        </h1>
+      <header className="mb-6 flex flex-col items-center text-center">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/sprites/Max_cape_detail.png"
+          alt="Max cape"
+          className="rs-cape mb-1 h-16 w-auto sm:h-20"
+        />
+        <div className="flex items-center justify-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/sprites/Coins_10000.png"
+            alt=""
+            aria-hidden="true"
+            className="rs-coin h-7 w-7"
+          />
+          <h1 className="rs-title text-3xl leading-tight sm:text-5xl">
+            Hours&nbsp;to&nbsp;Max
+          </h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/sprites/Coins_10000.png"
+            alt=""
+            aria-hidden="true"
+            className="rs-coin rs-coin--delay h-7 w-7"
+          />
+        </div>
         <p className="rs-shadow mt-2 text-base sm:text-lg text-[var(--rs-text-dim)]">
           Old School RuneScape — how long until 99 in everything?
         </p>
@@ -128,11 +150,33 @@ export default function Home() {
       {status === "loaded" && data && result && (
         <>
           {/* The grand total scroll */}
-          <section className="rs-parchment mb-6 p-5 text-center sm:p-7">
+          <section className="rs-parchment relative mb-6 overflow-hidden p-5 text-center sm:p-7">
             {result.alreadyMaxed ? (
               <>
+                {/* rising coins celebration */}
+                {[12, 32, 50, 68, 86].map((left, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={left}
+                    src="/sprites/Coins_10000.png"
+                    alt=""
+                    aria-hidden="true"
+                    className="rs-rise-coin"
+                    style={{ left: `${left}%`, animationDelay: `${i * 0.45}s` }}
+                  />
+                ))}
+                {/* The emote GIF has a solid black background, so frame it as
+                    an in-game "viewport" where the black reads as intentional. */}
+                <div className="rs-emote-frame relative mx-auto mb-3 w-fit">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/sprites/Max_cape_emote.gif"
+                    alt={`${data.username} performing the Max cape emote`}
+                    className="h-40 w-auto sm:h-52"
+                  />
+                </div>
                 <h2
-                  className="rs-shadow text-2xl sm:text-3xl font-bold"
+                  className="rs-shadow text-2xl font-bold sm:text-3xl"
                   style={{ fontFamily: "var(--font-rs-bold)" }}
                 >
                   {data.username} is MAXED! 🏆

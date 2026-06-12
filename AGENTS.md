@@ -15,6 +15,7 @@ An OSRS "hours to max" calculator. IGN → hiscores → XP/hr per skill → tota
 - `app/page.tsx` — client component; the whole UI. State: `username`, `status`, `data`, `rates` (XP/hr overrides; `""` = use default). Results via `useMemo`.
 - `app/globals.css` — the OSRS theme (`.rs-panel`, `.rs-button`, `.rs-parchment`, etc.). Colours in `:root`.
 - `public/icons/*.png` — 23 skill sprites (filenames match `Skill.icon`). `app/fonts/*.ttf` — RuneScape typefaces via `next/font/local`.
+- `public/sprites/` — decorative animated assets: `Max_cape_detail.png` (floating goal cape), `Coins_10000.png` (bobbing/rising coins), `Max_cape_emote.gif` (the maxed celebration). Animations are CSS keyframes in `globals.css` (`rs-float`, `rs-cape`, `rs-coin`, `rs-pulse`, `rs-rise`), all disabled under `prefers-reduced-motion`. Note: the emote GIF has a **non-transparent black background**, so it's wrapped in `.rs-emote-frame` (dark viewport) on purpose.
 
 ## Gotchas
 - Hiscores order puts **Defence before Strength** — don't reorder `SKILLS` without re-checking the parser.

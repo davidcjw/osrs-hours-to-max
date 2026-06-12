@@ -15,6 +15,7 @@ icons, stone panels and a parchment scroll for the result.
 - ⏱️ **Instant totals** — total hours to max, an `Xd Yh` breakdown, and per-skill estimates that update as you type.
 - 🟢 **Maxed detection** — already-99 skills are marked done; a fully maxed account gets a little celebration.
 - 🎨 **Authentic OSRS UI** — RuneScape typeface, official skill sprites, riveted interface panels.
+- ✨ **Animated sprites** — a floating Max cape goal, bobbing coins, pulsing maxed-skill icons, and the in-game Max cape emote (with rising-coin confetti) when you've maxed.
 
 ## How it works
 
@@ -70,6 +71,7 @@ automatic production deploy.
 
 This is a **fan project** — not affiliated with, endorsed by, or sponsored by
 Jagex. RuneScape and Old School RuneScape are trademarks of Jagex Ltd. Skill
-sprites are from the [OSRS Wiki](https://oldschool.runescape.wiki/); the
-RuneScape fonts are from [RuneStar/fonts](https://github.com/RuneStar/fonts).
+sprites and item/emote graphics (`public/icons`, `public/sprites`) are from the
+[OSRS Wiki](https://oldschool.runescape.wiki/); the RuneScape fonts are from
+[RuneStar/fonts](https://github.com/RuneStar/fonts).
 Stats are read from the official OSRS hiscores. Provided free, for fun.
