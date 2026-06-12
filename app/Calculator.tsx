@@ -11,6 +11,7 @@ import {
   type SkillProgress,
 } from "@/lib/skills";
 import { formatSpan, formatPeriod, gainsMessage } from "@/lib/gains";
+import MethodSelect from "./MethodSelect";
 
 interface Snapshot {
   savedAt: string; // ISO timestamp
@@ -20,17 +21,6 @@ interface Snapshot {
 
 const snapKey = (username: string) =>
   `htm:snap:${username.trim().toLowerCase()}`;
-
-// Sentinel for the (disabled) "Custom" option shown when the entered XP/hr
-// doesn't match any preset method.
-const CUSTOM = "__custom__";
-
-/** Which method dropdown option reflects the current rate. */
-function selectedMethod(skill: Skill, rate: number | ""): string {
-  if (rate === "") return ""; // blank => "Average (default)"
-  const match = skill.methods.find((m) => m.xpHr === rate);
-  return match ? match.name : CUSTOM;
-}
 
 /**
  * Fetch one of the dynamic OpenGraph cards as a PNG File so it can ride along
@@ -263,7 +253,7 @@ export default function Calculator({
 
   // Picking a method preset fills that skill's XP/hr; "" resets to the average.
   function pickMethod(skill: Skill, methodName: string) {
-    if (methodName === "" || methodName === CUSTOM) {
+    if (methodName === "") {
       setRate(skill.key, "");
       return;
     }
@@ -649,22 +639,11 @@ export default function Calculator({
                         </div>
                       ) : (
                         <div className="mt-1 flex flex-col gap-1.5">
-                          <select
-                            className="rs-input w-full px-2 py-1 text-sm"
-                            value={selectedMethod(skill, rates[row.key] ?? "")}
-                            onChange={(e) => pickMethod(skill, e.target.value)}
-                            aria-label={`${skill.name} training method`}
-                          >
-                            <option value="">Average (default)</option>
-                            {skill.methods.map((m) => (
-                              <option key={m.name} value={m.name}>
-                                {m.name} · {formatNumber(m.xpHr)}/hr
-                              </option>
-                            ))}
-                            <option value={CUSTOM} disabled>
-                              Custom
-                            </option>
-                          </select>
+                          <MethodSelect
+                            skill={skill}
+                            rate={rates[row.key] ?? ""}
+                            onPick={(name) => pickMethod(skill, name)}
+                          />
                           <div className="flex items-center gap-2">
                             <input
                               type="number"
