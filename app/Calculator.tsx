@@ -11,6 +11,7 @@ import {
   type SkillProgress,
 } from "@/lib/skills";
 import { formatSpan, formatPeriod, gainsMessage } from "@/lib/gains";
+import { track } from "@vercel/analytics";
 import MethodSelect from "./MethodSelect";
 
 interface Snapshot {
@@ -39,6 +40,32 @@ async function fetchShareImage(
   } catch {
     return null;
   }
+}
+
+/**
+ * Save an OG card PNG to the user's device. The desktop counterpart to the
+ * native file-share (which is mobile-only) — handy for posting the image to X
+ * or Instagram. Falls back to opening the image in a new tab if the blob
+ * download is blocked. Returns true on a successful blob download.
+ */
+async function downloadShareImage(
+  path: string,
+  filename: string
+): Promise<boolean> {
+  const file = await fetchShareImage(path, filename);
+  if (!file) {
+    window.open(path, "_blank", "noopener");
+    return false;
+  }
+  const objectUrl = URL.createObjectURL(file);
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(objectUrl);
+  return true;
 }
 
 function sumXp(progress: Record<string, SkillProgress>): number {
@@ -87,10 +114,12 @@ export default function Calculator({
 
   const [shareCount, setShareCount] = useState<number | null>(initialShareCount);
   const [shareLabel, setShareLabel] = useState("Share my grind");
+  const [downloadLabel, setDownloadLabel] = useState("Download card");
 
   // Daily progress tracker (localStorage-backed, per username).
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [gainsLabel, setGainsLabel] = useState("Share gains");
+  const [gainsDownloadLabel, setGainsDownloadLabel] = useState("Download card");
 
   async function lookup(name: string) {
     const n = name.trim();
@@ -107,6 +136,7 @@ export default function Calculator({
       }
       setData(json as HiscoresData);
       setStatus("loaded");
+      track("lookup", { maxed: (json as HiscoresData).totalLevel >= 2376 });
       // Reflect the shareable URL in the address bar without a reload.
       if (typeof window !== "undefined") {
         window.history.replaceState(
@@ -200,6 +230,7 @@ export default function Calculator({
     const span = formatSpan(gains.gainedXp, gains.days);
     setGainsLabel("Preparing…");
     let shared = false;
+    let method: "files" | "link" | "clipboard" | null = null;
     try {
       const file = await fetchShareImage(
         `/u/${encodeURIComponent(data.username)}/gains/${span}/opengraph-image`,
@@ -208,26 +239,31 @@ export default function Calculator({
       if (file && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ title: "OSRS Hours to Max", text, url, files: [file] });
         setGainsLabel("Share gains");
+        method = "files";
         shared = true;
       } else if (navigator.share) {
         await navigator.share({ title: "OSRS Hours to Max", text, url });
         setGainsLabel("Share gains");
+        method = "link";
         shared = true;
       } else {
         await navigator.clipboard.writeText(url);
         setGainsLabel("Link copied!");
+        method = "clipboard";
         shared = true;
       }
     } catch {
       try {
         await navigator.clipboard.writeText(url);
         setGainsLabel("Link copied!");
+        method = "clipboard";
         shared = true;
       } catch {
         setGainsLabel("Copy failed");
       }
     }
     if (shared) {
+      track("share", { surface: "gains", method: method ?? "unknown" });
       try {
         const res = await fetch("/api/share", { method: "POST" });
         const j = await res.json();
@@ -277,6 +313,7 @@ export default function Calculator({
     };
     setShareLabel("Preparing…");
     let shared = false;
+    let method: "files" | "link" | "clipboard" | null = null;
     try {
       const file = await fetchShareImage(
         `/u/${encodeURIComponent(data.username)}/opengraph-image`,
@@ -285,14 +322,17 @@ export default function Calculator({
       if (file && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ ...shareData, files: [file] });
         setShareLabel("Share my grind");
+        method = "files";
         shared = true;
       } else if (navigator.share) {
         await navigator.share(shareData);
         setShareLabel("Share my grind");
+        method = "link";
         shared = true;
       } else {
         await navigator.clipboard.writeText(url);
         setShareLabel("Link copied!");
+        method = "clipboard";
         shared = true;
       }
     } catch {
@@ -300,12 +340,14 @@ export default function Calculator({
       try {
         await navigator.clipboard.writeText(url);
         setShareLabel("Link copied!");
+        method = "clipboard";
         shared = true;
       } catch {
         setShareLabel("Copy failed");
       }
     }
     if (shared) {
+      track("share", { surface: "grind", method: method ?? "unknown" });
       try {
         const res = await fetch("/api/share", { method: "POST" });
         const j = await res.json();
@@ -315,6 +357,31 @@ export default function Calculator({
       }
     }
     setTimeout(() => setShareLabel("Share my grind"), 2500);
+  }
+
+  async function downloadCard() {
+    if (!data) return;
+    setDownloadLabel("Preparing…");
+    const ok = await downloadShareImage(
+      `/u/${encodeURIComponent(data.username)}/opengraph-image`,
+      `${data.username}-hours-to-max.png`
+    );
+    track("download_card", { surface: "grind" });
+    setDownloadLabel(ok ? "Saved! ⬇" : "Opened ↗");
+    setTimeout(() => setDownloadLabel("Download card"), 2500);
+  }
+
+  async function downloadGainsCard() {
+    if (!data || !gains || gains.gainedXp <= 0) return;
+    const span = formatSpan(gains.gainedXp, gains.days);
+    setGainsDownloadLabel("Preparing…");
+    const ok = await downloadShareImage(
+      `/u/${encodeURIComponent(data.username)}/gains/${span}/opengraph-image`,
+      `${data.username}-gains.png`
+    );
+    track("download_card", { surface: "gains" });
+    setGainsDownloadLabel(ok ? "Saved! ⬇" : "Opened ↗");
+    setTimeout(() => setGainsDownloadLabel("Download card"), 2500);
   }
 
   return (
@@ -460,13 +527,23 @@ export default function Calculator({
 
           {/* Share bar */}
           <div className="mb-6 flex flex-col items-center gap-2">
-            <button
-              type="button"
-              onClick={share}
-              className="rs-button px-6 py-2 text-base sm:text-lg"
-            >
-              {shareLabel} ⚔
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={share}
+                className="rs-button px-6 py-2 text-base sm:text-lg"
+              >
+                {shareLabel} ⚔
+              </button>
+              <button
+                type="button"
+                onClick={downloadCard}
+                className="rs-button px-4 py-2 text-base sm:text-lg"
+                title="Save the card as an image (great for posting to X / Instagram)"
+              >
+                {downloadLabel}
+              </button>
+            </div>
             <p className="rs-shadow text-sm text-[var(--rs-text-dim)]">
               {!shareCount || shareCount <= 0
                 ? "Be the first scaper to share your grind ⚔"
@@ -560,13 +637,21 @@ export default function Calculator({
                       </div>
                     )}
 
-                    <div className="mt-4">
+                    <div className="mt-4 flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={shareGains}
                         className="rs-button px-5 py-2 text-base"
                       >
                         {gainsLabel} 📜
+                      </button>
+                      <button
+                        type="button"
+                        onClick={downloadGainsCard}
+                        className="rs-button px-4 py-2 text-base"
+                        title="Save the gains card as an image"
+                      >
+                        {gainsDownloadLabel}
                       </button>
                     </div>
                   </>
