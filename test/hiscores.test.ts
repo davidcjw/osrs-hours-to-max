@@ -94,21 +94,28 @@ describe("parseHiscores", () => {
   });
 });
 
-// Mock the four hiscores boards by URL. The main board returns the sample
-// body; each variant returns 200 (listed) or 404 (not listed) per the flags.
-function mockBoards(flags: {
-  ironman?: boolean;
-  hardcore?: boolean;
-  ultimate?: boolean;
+// sampleBody()'s Overall row is "100000,1818,250000000" → main XP 250,000,000.
+const MAIN_XP = 250_000_000;
+
+// Mock the four hiscores boards by URL. The main board returns the sample body;
+// each variant returns a body with the given overall XP, or 404 when null/omitted.
+// Account-type detection compares XP across boards, so a live Ironman/HCIM/UIM
+// must match MAIN_XP; a frozen (dead/de-ironed) board sits behind it.
+function mockBoards(xp: {
+  ironman?: number | null;
+  hardcore?: number | null;
+  ultimate?: number | null;
 }) {
+  const board = (v?: number | null) =>
+    v == null
+      ? new Response("", { status: 404 })
+      : new Response(`1,2000,${v}`, { status: 200 });
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
     const url = String(input);
-    const board = (present?: boolean) =>
-      new Response(present ? "x" : "", { status: present ? 200 : 404 });
-    if (url.includes("hiscore_oldschool_ultimate")) return board(flags.ultimate);
+    if (url.includes("hiscore_oldschool_ultimate")) return board(xp.ultimate);
     if (url.includes("hiscore_oldschool_hardcore_ironman"))
-      return board(flags.hardcore);
-    if (url.includes("hiscore_oldschool_ironman")) return board(flags.ironman);
+      return board(xp.hardcore);
+    if (url.includes("hiscore_oldschool_ironman")) return board(xp.ironman);
     return new Response(sampleBody(), { status: 200 }); // main board
   });
 }
@@ -151,27 +158,40 @@ describe("fetchHiscores", () => {
   });
 
   it("detects a normal account (not on the Ironman board)", async () => {
-    mockBoards({ ironman: false });
+    mockBoards({ ironman: null });
     const res = await fetchHiscores("Zezima");
     expect(res).toMatchObject({ ok: true, accountType: "normal" });
   });
 
-  it("detects an Ironman (on ironman board only)", async () => {
-    mockBoards({ ironman: true });
+  it("detects an Ironman (on ironman board, in sync with main)", async () => {
+    mockBoards({ ironman: MAIN_XP });
     const res = await fetchHiscores("SomeIron");
     expect(res).toMatchObject({ ok: true, accountType: "ironman" });
   });
 
-  it("detects a Hardcore Ironman (hardcore wins over plain ironman)", async () => {
-    mockBoards({ ironman: true, hardcore: true });
+  it("detects a live Hardcore Ironman (hardcore keeps pace with ironman)", async () => {
+    mockBoards({ ironman: MAIN_XP, hardcore: MAIN_XP });
     const res = await fetchHiscores("HCIM");
     expect(res).toMatchObject({ ok: true, accountType: "hardcore" });
   });
 
-  it("detects an Ultimate Ironman (ultimate wins over ironman)", async () => {
-    mockBoards({ ironman: true, ultimate: true });
+  it("treats a DEAD Hardcore Ironman as a regular Ironman (ironman XP pulled ahead)", async () => {
+    // Frozen on the hardcore board at 100M, but climbed to 250M as an iron.
+    mockBoards({ ironman: MAIN_XP, hardcore: 100_000_000 });
+    const res = await fetchHiscores("DeadHCIM");
+    expect(res).toMatchObject({ ok: true, accountType: "ironman" });
+  });
+
+  it("detects an Ultimate Ironman (ultimate in sync with ironman)", async () => {
+    mockBoards({ ironman: MAIN_XP, ultimate: MAIN_XP });
     const res = await fetchHiscores("UIM");
     expect(res).toMatchObject({ ok: true, accountType: "ultimate" });
+  });
+
+  it("treats a de-ironed account as normal (main XP pulled ahead of the frozen ironman board)", async () => {
+    mockBoards({ ironman: 100_000_000 }); // main is 250M
+    const res = await fetchHiscores("DeIroned");
+    expect(res).toMatchObject({ ok: true, accountType: "normal" });
   });
 
   it("falls back to normal if account-type detection throws", async () => {

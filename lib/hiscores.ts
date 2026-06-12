@@ -81,48 +81,73 @@ export async function fetchHiscores(rawUsername: string): Promise<HiscoresResult
   }
 
   try {
-    const { totalLevel, progress } = parseHiscores(await res.text());
-    const accountType = await detectAccountType(username);
+    const text = await res.text();
+    const { totalLevel, progress } = parseHiscores(text);
+    const accountType = await detectAccountType(username, overallXp(text));
     return { ok: true, username, totalLevel, progress, accountType };
   } catch {
     return { ok: false, status: 502, error: "Unexpected response from hiscores." };
   }
 }
 
+/** Overall (total) XP from a hiscores body — first row, third field. */
+function overallXp(body: string): number {
+  const xp = parseInt(body.trim().split("\n")[0]?.split(",")[2] ?? "", 10);
+  return Number.isFinite(xp) ? Math.max(0, xp) : 0;
+}
+
+// `a` is meaningfully ahead of `b`. The ~0.1% slack absorbs indexing lag
+// between the separate hiscores boards so we don't misread an active account.
+const isAhead = (a: number, b: number) => a > b * 1.001;
+
 /**
- * Detect Ironman status from which boards the player is listed on. Checked
- * most-specific first: UIM and HCIM both also appear on the Ironman board, so
- * ultimate/hardcore win over plain ironman. A normal account 404s on the
- * Ironman board. Purely presence-based — a de-ironed account still lingering
- * on the Ironman board may read as "ironman", but it's a cosmetic badge so we
- * don't XP-compare boards to catch that rare case. Any failure → "normal".
+ * Detect Ironman status from the hiscores boards. Presence alone is NOT enough,
+ * because a board freezes a player's XP when they lose that status while the
+ * boards they keep stay live:
+ *  - **De-ironed**: frozen on the Ironman board, still climbing on the main
+ *    board → if main XP is ahead, they're a normal account again.
+ *  - **Dead Hardcore Ironman**: frozen on the hardcore board, still climbing on
+ *    the Ironman board → if Ironman XP is ahead, they died and are a regular
+ *    Ironman now. (Common — dead HCIM stay listed on the hardcore board forever,
+ *    so a presence-only check labels nearly every ex-hardcore account "hardcore".)
+ * So we compare XP across boards. Any failure → "normal".
  */
-async function detectAccountType(username: string): Promise<AccountType> {
+async function detectAccountType(
+  username: string,
+  mainXp: number
+): Promise<AccountType> {
   try {
-    const [ultimate, hardcore, ironman] = await Promise.all([
-      isOnBoard(HISCORE_MODES.ultimate, username),
-      isOnBoard(HISCORE_MODES.hardcore, username),
-      isOnBoard(HISCORE_MODES.ironman, username),
+    const [ironman, hardcore, ultimate] = await Promise.all([
+      fetchBoardXp(HISCORE_MODES.ironman, username),
+      fetchBoardXp(HISCORE_MODES.hardcore, username),
+      fetchBoardXp(HISCORE_MODES.ultimate, username),
     ]);
-    if (ultimate) return "ultimate";
-    if (hardcore) return "hardcore";
-    if (ironman) return "ironman";
-    return "normal";
+    // Not an Ironman at all, or de-ironed (main board pulled ahead).
+    if (ironman === null || isAhead(mainXp, ironman)) return "normal";
+    if (ultimate !== null) return "ultimate";
+    // Hardcore only while alive — once dead, the Ironman board pulls ahead of
+    // the frozen hardcore board.
+    if (hardcore !== null && !isAhead(ironman, hardcore)) return "hardcore";
+    return "ironman";
   } catch {
     return "normal";
   }
 }
 
-/** True if the player is listed on the given hiscores board (200 vs 404). */
-async function isOnBoard(mode: string, username: string): Promise<boolean> {
+/** Overall XP on the given board, or null if the player isn't listed (404). */
+async function fetchBoardXp(
+  mode: string,
+  username: string
+): Promise<number | null> {
   try {
     const res = await fetch(hiscoreUrl(mode, username), {
       headers: HISCORE_HEADERS,
       cache: "no-store",
     });
-    return res.ok;
+    if (!res.ok) return null;
+    return overallXp(await res.text());
   } catch {
-    return false;
+    return null;
   }
 }
 
