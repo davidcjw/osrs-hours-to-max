@@ -300,6 +300,36 @@ export default function Home() {
         </>
       )}
 
+      {/* Always-rendered content (crawlable even before a lookup) */}
+      <section className="rs-panel mt-10 p-4 sm:p-5">
+        <h2 className="rs-heading mb-2 text-lg sm:text-xl">
+          About this OSRS max calculator
+        </h2>
+        <div className="rs-shadow space-y-2 text-sm leading-relaxed text-[var(--rs-text-dim)]">
+          <p>
+            <strong className="text-[var(--rs-text)]">Hours to Max</strong> is a
+            free Old School RuneScape time-to-max calculator. Enter your
+            username, and it pulls your live stats from the official OSRS
+            hiscores, then works out how many hours of play stand between you and
+            a maxed account — level 99 in all 23 skills.
+          </p>
+          <p>
+            Set a realistic{" "}
+            <strong className="text-[var(--rs-text)]">XP per hour</strong> for
+            each skill, or leave it blank to use a sensible community average. As
+            you adjust your rates, the total updates instantly so you can plan
+            your route to max cape. Maxing every skill takes{" "}
+            {formatNumber(MAX_SKILL_XP)} XP per skill — over 299 million XP in
+            total.
+          </p>
+          <p>
+            Whether you&apos;re grinding Slayer, chasing 99 Agility, or finishing
+            off your last few skills, this tool gives you a clear, no-nonsense
+            estimate of your remaining playtime.
+          </p>
+        </div>
+      </section>
+
       {/* Footer / fan disclaimer */}
       <footer className="rs-shadow mt-10 text-center text-xs text-[var(--rs-text-dim)]">
         <p>

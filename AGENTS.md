@@ -22,6 +22,11 @@ An OSRS "hours to max" calculator. IGN → hiscores → XP/hr per skill → tota
 - Unranked skills return `-1` from the API; the parser floors them to level 1 / 0 XP.
 - Pixel fonts render best near 16–18px; `image-rendering: pixelated` keeps icons crisp.
 
+## SEO
+- Metadata is centralised in `app/layout.tsx` (`metadataBase`, canonical, OpenGraph, Twitter card, robots, JSON-LD `WebApplication`). `SITE_URL` is hardcoded to `https://hourstomax.davidcjw.com` there and in `app/robots.ts` / `app/sitemap.ts` — update all three if the domain changes.
+- `app/opengraph-image.tsx` generates the 1200×630 social card via `next/og` `ImageResponse` (`runtime = "nodejs"` so it can `readFileSync` the RuneScape ttf from `app/fonts/` and base64 the cape/coins sprites). `app/twitter-image.tsx` re-exports its default but must **statically re-declare** the route-segment config consts (can't re-export them).
+- The `<section>` "About this OSRS max calculator" in `page.tsx` is always rendered (not gated behind a lookup) so crawlers get keyword-rich content.
+
 ## Workflow
 - After any meaningful change, update `README.md` and this file.
 - Add/extend tests in `test/` for new logic. Run `npm test`, `npm run lint`, `npm run build` before calling a change done.

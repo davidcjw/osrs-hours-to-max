@@ -24,6 +24,12 @@ icons, stone panels and a parchment scroll for the result.
   server-side proxy at `app/api/hiscores/route.ts`.
 - Hours per skill = `remaining XP ÷ XP per hour`. Defaults live in `lib/skills.ts`.
 
+## SEO
+
+- Full metadata in `app/layout.tsx`: `metadataBase`, canonical URL, OpenGraph + Twitter `summary_large_image` cards, robots directives, and `WebApplication` JSON-LD.
+- A branded 1200×630 social preview image generated at `app/opengraph-image.tsx` (RuneScape font + Max cape).
+- `app/robots.ts` and `app/sitemap.ts` for crawlers; an always-visible "About" section for crawlable, keyword-rich content.
+
 ## Tech stack
 
 - [Next.js 16](https://nextjs.org/) (App Router, Turbopack)
