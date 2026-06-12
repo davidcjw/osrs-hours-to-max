@@ -64,8 +64,9 @@ test/                     # vitest specs
 
 ## Deployment
 
-Deployed on [Vercel](https://vercel.com/). Pushing to `master` triggers an
-automatic production deploy.
+Live at **[hourstomax.davidcjw.com](https://hourstomax.davidcjw.com)**, deployed
+on [Vercel](https://vercel.com/). Pushing to `master` triggers an automatic
+production deploy.
 
 ## Credits & legal
 
