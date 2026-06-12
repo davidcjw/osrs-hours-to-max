@@ -10,9 +10,12 @@ An OSRS "hours to max" calculator. IGN → hiscores → XP/hr per skill → tota
 
 ## Layout
 - `lib/skills.ts` — the 23 skills (in hiscores order: Attack, **Defence, Strength**, Hitpoints…), per-skill default XP/hr, max XP constants (`MAX_SKILL_XP = 13,034,431`), and `computeHoursToMax` / formatters. **This is the source of truth for the math.**
-- `lib/hiscores.ts` — `parseHiscores(csv)` and `isValidUsername`. Pure + unit-tested.
-- `app/api/hiscores/route.ts` — server-side proxy to `secure.runescape.com` (the hiscores API has no CORS). Uses `parseHiscores`.
-- `app/page.tsx` — client component; the whole UI. State: `username`, `status`, `data`, `rates` (XP/hr overrides; `""` = use default). Results via `useMemo`.
+- `lib/hiscores.ts` — `fetchHiscores(name)` (validate + fetch + parse, returns a discriminated `HiscoresResult`), plus `parseHiscores` / `isValidUsername`. Pure parts unit-tested; `fetchHiscores` tested with a mocked `fetch`.
+- `lib/shares.ts` — REST wrapper around the Supabase `get_counter` / `increment_counter` RPCs (no SDK). Returns `null` (→ treated as 0) when `SUPABASE_URL`/`SUPABASE_KEY` are unset, so the app degrades gracefully.
+- `app/api/hiscores/route.ts` — thin wrapper over `fetchHiscores`. `app/api/share/route.ts` — GET reads / POST increments the counter.
+- `app/Calculator.tsx` — the whole interactive UI (client component). State: `username`, `status`, `data`, `rates` (XP/hr overrides; `""` = use default), `shareCount`. Accepts `initialData` / `initialUsername` / `initialError` / `initialShareCount` props so it can be server-preloaded. Results via `useMemo`.
+- `app/page.tsx` — static server component rendering `<Calculator />`.
+- `app/u/[username]/page.tsx` — server-renders a preloaded `<Calculator>` with per-user `generateMetadata`; `opengraph-image.tsx` there renders the per-user social card. The hiscores lookup is wrapped in React `cache()` to dedupe across metadata + page. After a successful lookup on `/`, the client `replaceState`s to `/u/{username}` (that's the URL-state / shareable link).
 - `app/globals.css` — the OSRS theme (`.rs-panel`, `.rs-button`, `.rs-parchment`, etc.). Colours in `:root`.
 - `public/icons/*.png` — 23 skill sprites (filenames match `Skill.icon`). `app/fonts/*.ttf` — RuneScape typefaces via `next/font/local`.
 - `public/sprites/` — decorative animated assets: `Max_cape_detail.png` (header goal cape), `Coins_10000.png` (bobbing/rising coins), `Max_cape_emote.gif` (the maxed celebration). Animations are CSS keyframes in `globals.css` (`rs-float`, `rs-cape`, `rs-coin`, `rs-pulse`, `rs-rise`), all disabled under `prefers-reduced-motion`. The emote GIF has a **non-transparent black background**, so it's wrapped in `.rs-emote-frame` (dark viewport) on purpose — color-keying it to transparency was tried and looked worse, so don't.

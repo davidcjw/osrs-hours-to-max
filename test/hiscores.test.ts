@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { isValidUsername, parseHiscores } from "@/lib/hiscores";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { isValidUsername, parseHiscores, fetchHiscores } from "@/lib/hiscores";
 import { SKILL_COUNT } from "@/lib/skills";
 
 // A realistic index_lite body: Overall, then 23 skills (rank,level,xp),
@@ -81,5 +81,43 @@ describe("parseHiscores", () => {
 
   it("throws on a truncated body", () => {
     expect(() => parseHiscores("1,2,3\n4,5,6")).toThrow();
+  });
+});
+
+describe("fetchHiscores", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("rejects empty and invalid usernames without hitting the network", async () => {
+    const spy = vi.spyOn(globalThis, "fetch");
+    expect(await fetchHiscores("")).toMatchObject({ ok: false, status: 400 });
+    expect(await fetchHiscores("bad/name")).toMatchObject({ ok: false, status: 400 });
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("returns ok with parsed progress on a successful response", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(sampleBody(), { status: 200 })
+    );
+    const res = await fetchHiscores("Zezima");
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.username).toBe("Zezima");
+      expect(res.totalLevel).toBe(1818);
+      expect(res.progress.cooking.xp).toBe(13034431);
+    }
+  });
+
+  it("maps a 404 to a not-found result", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("", { status: 404 })
+    );
+    expect(await fetchHiscores("nope")).toMatchObject({ ok: false, status: 404 });
+  });
+
+  it("maps a network failure to a 502 result", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("network down"));
+    expect(await fetchHiscores("Zezima")).toMatchObject({ ok: false, status: 502 });
   });
 });

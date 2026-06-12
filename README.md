@@ -14,6 +14,8 @@ icons, stone panels and a parchment scroll for the result.
 - ⚙️ **Per-skill XP/hr** — override any skill's rate; blanks fall back to a reasonable average.
 - ⏱️ **Instant totals** — total hours to max, an `Xd Yh` breakdown, and per-skill estimates that update as you type.
 - 🟢 **Maxed detection** — already-99 skills are marked done; a fully maxed account gets a little celebration.
+- 🔗 **Shareable result pages** — every lookup gets a clean `/u/{username}` URL with a per-user social preview card (e.g. "Faux — 1,356 hours to max"), so friends see your grind when you share it.
+- ⚔️ **Live share counter** — "N scapers have shared their grind", backed by Supabase.
 - 🎨 **Authentic OSRS UI** — RuneScape typeface, official skill sprites, riveted interface panels.
 - ✨ **Animated sprites** — a floating Max cape goal, bobbing coins, pulsing maxed-skill icons, and the in-game Max cape emote (with rising-coin confetti) when you've maxed.
 
@@ -61,12 +63,28 @@ app/
   layout.tsx              # fonts + metadata
   globals.css             # OSRS theme
   fonts/                  # RuneScape typefaces (self-hosted via next/font)
+  Calculator.tsx          # the interactive calculator (client component)
+  u/[username]/           # shareable per-user page + dynamic OG image
+  api/share/route.ts      # share counter (GET reads, POST increments)
 lib/
   skills.ts               # skill data, defaults, hours-to-max math
-  hiscores.ts             # hiscores CSV parser + username validation
+  hiscores.ts             # hiscores fetch + CSV parser + username validation
+  shares.ts               # Supabase counter RPC wrapper
 public/icons/             # 23 skill sprites
 test/                     # vitest specs
 ```
+
+## Environment variables
+
+The share counter needs a Supabase project with `app_counters` + the
+`increment_counter` / `get_counter` RPCs. Set:
+
+```
+SUPABASE_URL=https://<project>.supabase.co
+SUPABASE_KEY=<publishable or anon key>
+```
+
+If these are unset, the app still works — the counter just reads as 0.
 
 ## Deployment
 
