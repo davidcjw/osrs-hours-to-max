@@ -15,7 +15,7 @@ An OSRS "hours to max" calculator. IGN → hiscores → XP/hr per skill → tota
 - `app/page.tsx` — client component; the whole UI. State: `username`, `status`, `data`, `rates` (XP/hr overrides; `""` = use default). Results via `useMemo`.
 - `app/globals.css` — the OSRS theme (`.rs-panel`, `.rs-button`, `.rs-parchment`, etc.). Colours in `:root`.
 - `public/icons/*.png` — 23 skill sprites (filenames match `Skill.icon`). `app/fonts/*.ttf` — RuneScape typefaces via `next/font/local`.
-- `public/sprites/` — decorative animated assets: `Max_cape_detail.png` (header goal cape), `Coins_10000.png` (bobbing/rising coins), `Max_cape_emote.webp` (the maxed celebration). Animations are CSS keyframes in `globals.css` (`rs-float`, `rs-cape`, `rs-coin`, `rs-pulse`, `rs-rise`), all disabled under `prefers-reduced-motion`. The emote was a black-background GIF from the wiki — converted to a transparent animated WebP with `ffmpeg -vf "colorkey=0x101010:0.18:0.0,format=rgba" -c:v libwebp_anim -lossless 1` (OSRS sprites are hard-edged pixel art, so the key is clean; the leftover coloured specks are the emote's own firework particles).
+- `public/sprites/` — decorative animated assets: `Max_cape_detail.png` (header goal cape), `Coins_10000.png` (bobbing/rising coins), `Max_cape_emote.gif` (the maxed celebration). Animations are CSS keyframes in `globals.css` (`rs-float`, `rs-cape`, `rs-coin`, `rs-pulse`, `rs-rise`), all disabled under `prefers-reduced-motion`. The emote GIF has a **non-transparent black background**, so it's wrapped in `.rs-emote-frame` (dark viewport) on purpose — color-keying it to transparency was tried and looked worse, so don't.
 
 ## Gotchas
 - Hiscores order puts **Defence before Strength** — don't reorder `SKILLS` without re-checking the parser.

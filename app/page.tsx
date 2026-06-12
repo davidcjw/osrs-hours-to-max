@@ -165,13 +165,16 @@ export default function Home() {
                     style={{ left: `${left}%`, animationDelay: `${i * 0.45}s` }}
                   />
                 ))}
-                {/* Background-removed (transparent) animated emote. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/sprites/Max_cape_emote.webp"
-                  alt={`${data.username} performing the Max cape emote`}
-                  className="rs-float relative mx-auto mb-2 h-44 w-auto sm:h-56"
-                />
+                {/* The emote GIF has a solid black background, so frame it as
+                    an in-game "viewport" where the black reads as intentional. */}
+                <div className="rs-emote-frame relative mx-auto mb-3 w-fit">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/sprites/Max_cape_emote.gif"
+                    alt={`${data.username} performing the Max cape emote`}
+                    className="h-40 w-auto sm:h-52"
+                  />
+                </div>
                 <h2
                   className="rs-shadow text-2xl font-bold sm:text-3xl"
                   style={{ fontFamily: "var(--font-rs-bold)" }}
