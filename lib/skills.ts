@@ -4,8 +4,8 @@
 
 export const MAX_LEVEL = 99;
 export const MAX_SKILL_XP = 13_034_431; // XP required for level 99
-export const SKILL_COUNT = 23;
-export const MAX_TOTAL_XP = MAX_SKILL_XP * SKILL_COUNT; // 299,791,913
+export const SKILL_COUNT = 24; // includes Sailing (added 2025)
+export const MAX_TOTAL_XP = MAX_SKILL_XP * SKILL_COUNT; // 312,826,344
 
 export interface Skill {
   /** key used in form state / hiscores parsing */
@@ -46,6 +46,7 @@ export const SKILLS: Skill[] = [
   { key: "runecraft", name: "Runecraft", icon: "Runecraft.png", defaultXpHr: 50_000 },
   { key: "hunter", name: "Hunter", icon: "Hunter.png", defaultXpHr: 150_000 },
   { key: "construction", name: "Construction", icon: "Construction.png", defaultXpHr: 500_000 },
+  { key: "sailing", name: "Sailing", icon: "Sailing.png", defaultXpHr: 80_000 },
 ];
 
 export interface SkillProgress {

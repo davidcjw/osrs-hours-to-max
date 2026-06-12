@@ -381,7 +381,7 @@ export default function Calculator({
                   {data.username} is MAXED! 🏆
                 </h2>
                 <p className="rs-shadow mt-2 text-lg">
-                  All 23 skills at 99. Nothing left to grind. Go outside.
+                  All 24 skills at 99. Nothing left to grind. Go outside.
                 </p>
               </>
             ) : (
@@ -615,7 +615,7 @@ export default function Calculator({
           </section>
 
           <p className="rs-shadow mt-4 text-center text-sm text-[var(--rs-text-dim)]">
-            Max = level 99 in all 23 skills ({formatNumber(MAX_SKILL_XP)} XP each).
+            Max = level 99 in all 24 skills ({formatNumber(MAX_SKILL_XP)} XP each).
             Blank fields use community-average XP/hr.
           </p>
         </>
@@ -632,7 +632,7 @@ export default function Calculator({
             free Old School RuneScape time-to-max calculator. Enter your
             username, and it pulls your live stats from the official OSRS
             hiscores, then works out how many hours of play stand between you and
-            a maxed account — level 99 in all 23 skills.
+            a maxed account — level 99 in all 24 skills.
           </p>
           <p>
             Set a realistic{" "}
@@ -640,7 +640,7 @@ export default function Calculator({
             each skill, or leave it blank to use a sensible community average. As
             you adjust your rates, the total updates instantly so you can plan
             your route to max cape. Maxing every skill takes{" "}
-            {formatNumber(MAX_SKILL_XP)} XP per skill — over 299 million XP in
+            {formatNumber(MAX_SKILL_XP)} XP per skill — over 312 million XP in
             total.
           </p>
           <p>

@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? `${res.username} is MAXED`
     : `${res.username} — ${formatNumber(totalHours)} hours to max`;
   const description = alreadyMaxed
-    ? `${res.username} has maxed all 23 skills (level 99) in Old School RuneScape.`
+    ? `${res.username} has maxed all 24 skills (level 99) in Old School RuneScape.`
     : `${res.username} (total level ${formatNumber(
         res.totalLevel
       )}) needs ${formatNumber(totalHours)} hours — about ${formatDuration(

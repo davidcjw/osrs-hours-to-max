@@ -2,12 +2,12 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { isValidUsername, parseHiscores, fetchHiscores } from "@/lib/hiscores";
 import { SKILL_COUNT } from "@/lib/skills";
 
-// A realistic index_lite body: Overall, then 23 skills (rank,level,xp),
+// A realistic index_lite body: Overall, then 24 skills (rank,level,xp),
 // then a couple of activity rows that should be ignored.
 function sampleBody(): string {
   const lines: string[] = [];
   lines.push("100000,1818,250000000"); // Overall
-  // 23 skill rows. Make Attack unranked (-1) and Cooking maxed.
+  // 24 skill rows. Make Attack unranked (-1) and Cooking maxed.
   const skillRows: [number, number, number][] = [
     [-1, -1, -1], // attack (unranked)
     [50000, 80, 2000000], // defence
@@ -32,6 +32,7 @@ function sampleBody(): string {
     [400, 55, 175000], // runecraft
     [300, 70, 750000], // hunter
     [200, 75, 1200000], // construction
+    [150, 40, 200000], // sailing
   ];
   for (const [rank, level, xp] of skillRows) lines.push(`${rank},${level},${xp}`);
   // trailing activity/boss rows (rank,score) — should be ignored
@@ -56,10 +57,19 @@ describe("isValidUsername", () => {
 });
 
 describe("parseHiscores", () => {
-  it("parses all 23 skills and the overall total level", () => {
+  it("parses all 24 skills and the overall total level", () => {
     const parsed = parseHiscores(sampleBody());
     expect(Object.keys(parsed.progress)).toHaveLength(SKILL_COUNT);
     expect(parsed.totalLevel).toBe(1818);
+  });
+
+  it("parses Sailing (the 24th skill, appended after Construction)", () => {
+    const parsed = parseHiscores(sampleBody());
+    expect(parsed.progress.sailing).toEqual({
+      key: "sailing",
+      level: 40,
+      xp: 200000,
+    });
   });
 
   it("floors unranked (-1) skills to level 1 / 0 xp", () => {

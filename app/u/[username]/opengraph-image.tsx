@@ -36,7 +36,7 @@ export default async function Image({
     const { totalHours, alreadyMaxed } = computeHoursToMax(res.progress, {});
     if (alreadyMaxed) {
       headline = "is MAXED!";
-      sub = "All 23 skills at level 99";
+      sub = "All 24 skills at level 99";
     } else {
       headline = `${formatNumber(totalHours)} hours to max`;
       sub = `about ${formatDuration(totalHours)} of play`;

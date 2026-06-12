@@ -18,9 +18,10 @@ function progressFrom(xpByKey: Record<string, number>): Record<string, SkillProg
 }
 
 describe("skill data", () => {
-  it("has exactly 23 skills", () => {
+  it("has exactly 24 skills (incl. Sailing)", () => {
     expect(SKILLS).toHaveLength(SKILL_COUNT);
-    expect(SKILL_COUNT).toBe(23);
+    expect(SKILL_COUNT).toBe(24);
+    expect(SKILLS[SKILLS.length - 1].key).toBe("sailing");
   });
 
   it("orders skills to match the hiscores response (Attack, Defence, Strength...)", () => {
@@ -38,7 +39,7 @@ describe("skill data", () => {
 });
 
 describe("computeHoursToMax", () => {
-  it("a fresh level-1 account needs all 23 skills' worth of XP", () => {
+  it("a fresh level-1 account needs all 24 skills' worth of XP", () => {
     const { rows, totalRemainingXp, alreadyMaxed } = computeHoursToMax(
       progressFrom({}),
       {}

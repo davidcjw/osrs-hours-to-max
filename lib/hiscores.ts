@@ -77,7 +77,7 @@ export function isValidUsername(name: string): boolean {
 
 /**
  * Parse the OSRS `index_lite` hiscores CSV body.
- * Row 0 is Overall; rows 1..23 are skills in SKILLS order, each `rank,level,xp`.
+ * Row 0 is Overall; rows 1..N are skills in SKILLS order, each `rank,level,xp`.
  * Unranked entries come back as -1 and are floored to 0 / level 1.
  * Throws if the body is too short to contain all skills.
  */

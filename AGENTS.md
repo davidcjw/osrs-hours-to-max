@@ -9,7 +9,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 An OSRS "hours to max" calculator. IGN → hiscores → XP/hr per skill → total hours to 99-everything.
 
 ## Layout
-- `lib/skills.ts` — the 23 skills (in hiscores order: Attack, **Defence, Strength**, Hitpoints…), per-skill default XP/hr, max XP constants (`MAX_SKILL_XP = 13,034,431`), and `computeHoursToMax` / formatters. **This is the source of truth for the math.**
+- `lib/skills.ts` — the 24 skills (in hiscores order: Attack, **Defence, Strength**, Hitpoints… **Sailing** last), per-skill default XP/hr, max XP constants (`MAX_SKILL_XP = 13,034,431`), and `computeHoursToMax` / formatters. **This is the source of truth for the math.**
 - `lib/hiscores.ts` — `fetchHiscores(name)` (validate + fetch + parse, returns a discriminated `HiscoresResult`), plus `parseHiscores` / `isValidUsername`. Pure parts unit-tested; `fetchHiscores` tested with a mocked `fetch`.
 - `lib/shares.ts` — REST wrapper around the Supabase `get_counter` / `increment_counter` RPCs (no SDK). Returns `null` (→ treated as 0) when `SUPABASE_URL`/`SUPABASE_KEY` are unset, so the app degrades gracefully.
 - `app/api/hiscores/route.ts` — thin wrapper over `fetchHiscores`. `app/api/share/route.ts` — GET reads / POST increments the counter.
@@ -20,7 +20,7 @@ An OSRS "hours to max" calculator. IGN → hiscores → XP/hr per skill → tota
 - Tracker UI lives in `Calculator.tsx`: a per-username snapshot (`htm:snap:{lowercased}`) in `localStorage` holds `{savedAt, totalXp, perSkill}`. Gains = live XP − snapshot; "Save today" re-baselines. Reading the snapshot is an external-store sync in an effect (one `eslint-disable react-hooks/set-state-in-effect`).
 - `app/u/[username]/gains/[span]/` — shareable gains card. `span` is parsed by `parseSpan`; malformed → `redirect()` to the profile. The OG image there must keep **single-child text nodes** (satori needs `display:flex` for multi-child divs) — compose strings in JS, don't mix `text {expr}` in one div.
 - `app/globals.css` — the OSRS theme (`.rs-panel`, `.rs-button`, `.rs-parchment`, etc.). Colours in `:root`.
-- `public/icons/*.png` — 23 skill sprites (filenames match `Skill.icon`). `app/fonts/*.ttf` — RuneScape typefaces via `next/font/local`.
+- `public/icons/*.png` — 24 skill sprites (filenames match `Skill.icon`). `app/fonts/*.ttf` — RuneScape typefaces via `next/font/local`.
 - `public/sprites/` — decorative animated assets: `Max_cape_detail.png` (header goal cape), `Coins_10000.png` (bobbing/rising coins), `Max_cape_emote.gif` (the maxed celebration). Animations are CSS keyframes in `globals.css` (`rs-float`, `rs-cape`, `rs-coin`, `rs-pulse`, `rs-rise`), all disabled under `prefers-reduced-motion`. The emote GIF has a **non-transparent black background**, so it's wrapped in `.rs-emote-frame` (dark viewport) on purpose — color-keying it to transparency was tried and looked worse, so don't.
 
 ## Gotchas

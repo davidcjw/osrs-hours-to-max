@@ -23,7 +23,7 @@ const runescapeQuill = localFont({
 const SITE_URL = "https://hourstomax.davidcjw.com";
 const TITLE = "OSRS Hours to Max — Time to Max Calculator";
 const DESCRIPTION =
-  "Free Old School RuneScape hours-to-max calculator. Enter your username, pull your live hiscores, set your XP/hr per skill, and see exactly how many hours until you max all 23 skills at 99.";
+  "Free Old School RuneScape hours-to-max calculator. Enter your username, pull your live hiscores, set your XP/hr per skill, and see exactly how many hours until you max all 24 skills at 99.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

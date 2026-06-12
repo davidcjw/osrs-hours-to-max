@@ -10,7 +10,7 @@ icons, stone panels and a parchment scroll for the result.
 
 ## Features
 
-- 🔎 **Live hiscores lookup** — type an IGN, get current level + XP for all 23 skills.
+- 🔎 **Live hiscores lookup** — type an IGN, get current level + XP for all 24 skills.
 - ⚙️ **Per-skill XP/hr** — override any skill's rate; blanks fall back to a reasonable average.
 - ⏱️ **Instant totals** — total hours to max, an `Xd Yh` breakdown, and per-skill estimates that update as you type.
 - 🟢 **Maxed detection** — already-99 skills are marked done; a fully maxed account gets a little celebration.
@@ -22,7 +22,7 @@ icons, stone panels and a parchment scroll for the result.
 
 ## How it works
 
-- **Max** = level 99 in all 23 skills = `13,034,431` XP each (`299,791,913` total).
+- **Max** = level 99 in all 24 skills = `13,034,431` XP each (`312,826,344` total).
 - The OSRS hiscores API blocks browser CORS, so lookups go through a small
   server-side proxy at `app/api/hiscores/route.ts`.
 - Hours per skill = `remaining XP ÷ XP per hour`. Defaults live in `lib/skills.ts`.
@@ -73,7 +73,7 @@ lib/
   hiscores.ts             # hiscores fetch + CSV parser + username validation
   shares.ts               # Supabase counter RPC wrapper
   gains.ts                # motivational tiers + gains-span encode/parse
-public/icons/             # 23 skill sprites
+public/icons/             # 24 skill sprites
 test/                     # vitest specs
 ```
 
