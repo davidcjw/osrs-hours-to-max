@@ -32,6 +32,25 @@ function selectedMethod(skill: Skill, rate: number | ""): string {
   return match ? match.name : CUSTOM;
 }
 
+/**
+ * Fetch one of the dynamic OpenGraph cards as a PNG File so it can ride along
+ * in the native share sheet. Returns null if the fetch fails (caller then
+ * falls back to a link-only share).
+ */
+async function fetchShareImage(
+  path: string,
+  filename: string
+): Promise<File | null> {
+  try {
+    const res = await fetch(path);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return new File([blob], filename, { type: blob.type || "image/png" });
+  } catch {
+    return null;
+  }
+}
+
 function sumXp(progress: Record<string, SkillProgress>): number {
   return SKILLS.reduce((sum, s) => sum + (progress[s.key]?.xp ?? 0), 0);
 }
@@ -188,10 +207,21 @@ export default function Calculator({
     const text = `${data.username} gained ${formatNumber(
       gains.gainedXp
     )} XP ${formatPeriod(gains.days)} in OSRS. ${gainsMessage(gains.gainedXp).message}`;
+    const span = formatSpan(gains.gainedXp, gains.days);
+    setGainsLabel("Preparing…");
     let shared = false;
     try {
-      if (navigator.share) {
+      const file = await fetchShareImage(
+        `/u/${encodeURIComponent(data.username)}/gains/${span}/opengraph-image`,
+        `${data.username}-gains.png`
+      );
+      if (file && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: "OSRS Hours to Max", text, url, files: [file] });
+        setGainsLabel("Share gains");
+        shared = true;
+      } else if (navigator.share) {
         await navigator.share({ title: "OSRS Hours to Max", text, url });
+        setGainsLabel("Share gains");
         shared = true;
       } else {
         await navigator.clipboard.writeText(url);
@@ -255,10 +285,20 @@ export default function Calculator({
           )} hours to max in OSRS. How long is your grind?`,
       url,
     };
+    setShareLabel("Preparing…");
     let shared = false;
     try {
-      if (navigator.share) {
+      const file = await fetchShareImage(
+        `/u/${encodeURIComponent(data.username)}/opengraph-image`,
+        `${data.username}-hours-to-max.png`
+      );
+      if (file && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ ...shareData, files: [file] });
+        setShareLabel("Share my grind");
+        shared = true;
+      } else if (navigator.share) {
         await navigator.share(shareData);
+        setShareLabel("Share my grind");
         shared = true;
       } else {
         await navigator.clipboard.writeText(url);

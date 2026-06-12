@@ -16,6 +16,7 @@ icons, stone panels and a parchment scroll for the result.
 - ⏱️ **Instant totals** — total hours to max, an `Xd Yh` breakdown, and per-skill estimates that update as you type.
 - 🟢 **Maxed detection** — already-99 skills are marked done; a fully maxed account gets a little celebration.
 - 🔗 **Shareable result pages** — every lookup gets a clean `/u/{username}` URL with a per-user social preview card (e.g. "Faux — 1,356 hours to max"), so friends see your grind when you share it.
+- 🖼️ **Native image sharing** — on devices that support it (`navigator.canShare({ files })`), the Share button attaches the rendered OG card as a PNG to the share sheet, so it posts as an image even in apps that don't unfurl links. Falls back to a link/clipboard share otherwise.
 - ⚔️ **Live share counter** — "N scapers have shared their grind", backed by Supabase.
 - 📜 **Daily gains tracker** — save a snapshot of your XP, come back later, and see exactly how much you've gained. Generates a shareable gains card with motivational copy that scales with the grind ("Warming Up" → "Legendary"). Snapshots are stored in your browser's localStorage.
 - 🎨 **Authentic OSRS UI** — RuneScape typeface, official skill sprites, riveted interface panels.
