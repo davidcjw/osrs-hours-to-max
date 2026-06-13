@@ -55,31 +55,83 @@ export function gainsMessage(xpGained: number): GainTier {
   };
 }
 
+/** A single skill's gained XP, for the per-skill breakdown on the card. */
+export interface SkillGain {
+  /** skill key (lowercase, matches SKILLS in lib/skills.ts) */
+  key: string;
+  /** XP gained in this skill (> 0) */
+  xp: number;
+}
+
 export interface GainSpan {
   /** total XP gained over the period (>= 0) */
   xp: number;
   /** number of days the period covers (>= 0) */
   days: number;
+  /** top skills by XP gained (may be empty for older/short links) */
+  topSkills: SkillGain[];
 }
 
-/** Encode gains into a single URL path segment, e.g. "1234567-3". */
-export function formatSpan(xp: number, days: number): string {
+const MAX_XP = 5_000_000_000;
+const MAX_TOP_SKILLS = 4;
+
+/**
+ * Encode gains into a single URL path segment, e.g. "1234567-3" or, with a
+ * per-skill breakdown, "1234567-3-slayer.800000-agility.300000". Skill keys are
+ * lowercase letters only and XP is integer, so "-"/"." are safe separators.
+ */
+export function formatSpan(
+  xp: number,
+  days: number,
+  topSkills: SkillGain[] = []
+): string {
   const x = Math.max(0, Math.floor(xp));
   const d = Math.max(0, Math.floor(days));
-  return `${x}-${d}`;
+  let span = `${x}-${d}`;
+  for (const sk of topSkills.slice(0, MAX_TOP_SKILLS)) {
+    const kx = Math.max(0, Math.floor(sk.xp));
+    if (kx > 0 && /^[a-z]{1,15}$/.test(sk.key)) span += `-${sk.key}.${kx}`;
+  }
+  return span;
 }
 
-/** Parse the "{xp}-{days}" path segment. Returns null on anything malformed. */
+/**
+ * Parse "{xp}-{days}" with optional "-{key}.{xp}" skill segments. Returns null
+ * on anything malformed (any bad trailing segment rejects the whole span).
+ */
 export function parseSpan(span: string): GainSpan | null {
-  const m = /^(\d+)-(\d+)$/.exec(span);
-  if (!m) return null;
-  const xp = Number(m[1]);
-  const days = Number(m[2]);
+  const [xpStr, daysStr, ...rest] = span.split("-");
+  if (!/^\d+$/.test(xpStr ?? "") || !/^\d+$/.test(daysStr ?? "")) return null;
+  const xp = Number(xpStr);
+  const days = Number(daysStr);
   if (!Number.isFinite(xp) || !Number.isFinite(days)) return null;
-  // Guard against absurd values (12 skills * 200m headroom is well under this).
-  if (xp > 5_000_000_000) return null;
+  // Guard against absurd values (24 skills * 200m headroom is well under this).
+  if (xp > MAX_XP) return null;
   if (days > 100_000) return null;
-  return { xp, days };
+  if (rest.length > MAX_TOP_SKILLS) return null;
+
+  const topSkills: SkillGain[] = [];
+  for (const token of rest) {
+    const m = /^([a-z]{1,15})\.(\d{1,12})$/.exec(token);
+    if (!m) return null;
+    const skXp = Number(m[2]);
+    if (!Number.isFinite(skXp) || skXp > MAX_XP) return null;
+    topSkills.push({ key: m[1], xp: skXp });
+  }
+  return { xp, days, topSkills };
+}
+
+/** Compact XP for tight spaces, e.g. 1_234_567 → "1.2M", 450_000 → "450k". */
+export function formatXpShort(n: number): string {
+  const x = Math.max(0, Math.floor(n));
+  const trim = (v: number) => {
+    if (v >= 100) return String(Math.round(v));
+    const s = v.toFixed(1);
+    return s.endsWith(".0") ? s.slice(0, -2) : s;
+  };
+  if (x >= 999_500) return `${trim(x / 1_000_000)}M`;
+  if (x >= 1_000) return `${trim(x / 1_000)}k`;
+  return String(x);
 }
 
 /** Human phrase for the period length. */

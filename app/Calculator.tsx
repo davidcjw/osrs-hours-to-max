@@ -239,7 +239,14 @@ export default function Calculator({
     }))
       .filter((s) => s.gained > 0)
       .sort((a, b) => b.gained - a.gained);
-    return { gainedXp, days, topSkills: perSkill.slice(0, 3) };
+    // Up to 4 — the share card shows the breakdown; the in-app chips show 3.
+    const topSkills = perSkill.slice(0, 4);
+    return {
+      gainedXp,
+      days,
+      topSkills,
+      spanSkills: topSkills.map((s) => ({ key: s.key, xp: s.gained })),
+    };
   }, [data, snapshot]);
 
   function saveSnapshot() {
@@ -263,11 +270,11 @@ export default function Calculator({
     if (!data || !gains || gains.gainedXp <= 0) return;
     const url = `${window.location.origin}/u/${encodeURIComponent(
       data.username
-    )}/gains/${formatSpan(gains.gainedXp, gains.days)}`;
+    )}/gains/${formatSpan(gains.gainedXp, gains.days, gains.spanSkills)}`;
     const text = `${data.username} gained ${formatNumber(
       gains.gainedXp
     )} XP ${formatPeriod(gains.days)} in OSRS. ${gainsMessage(gains.gainedXp).message}`;
-    const span = formatSpan(gains.gainedXp, gains.days);
+    const span = formatSpan(gains.gainedXp, gains.days, gains.spanSkills);
     setGainsLabel("Preparing…");
     let shared = false;
     let method: "files" | "link" | "clipboard" | null = null;
@@ -413,7 +420,7 @@ export default function Calculator({
 
   async function downloadGainsCard() {
     if (!data || !gains || gains.gainedXp <= 0) return;
-    const span = formatSpan(gains.gainedXp, gains.days);
+    const span = formatSpan(gains.gainedXp, gains.days, gains.spanSkills);
     setGainsDownloadLabel("Preparing…");
     const ok = await downloadShareImage(
       `/u/${encodeURIComponent(data.username)}/gains/${span}/opengraph-image`,
@@ -655,7 +662,7 @@ export default function Calculator({
 
                     {gains.topSkills.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-3">
-                        {gains.topSkills.map((s) => (
+                        {gains.topSkills.slice(0, 3).map((s) => (
                           <div
                             key={s.key}
                             className="rs-skill flex items-center gap-2 px-2 py-1"

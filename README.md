@@ -20,7 +20,7 @@ icons, stone panels and a parchment scroll for the result.
 - 🖼️ **Native image sharing** — on devices that support it (`navigator.canShare({ files })`), the Share button attaches the rendered OG card as a PNG to the share sheet, so it posts as an image even in apps that don't unfurl links. Falls back to a link/clipboard share otherwise.
 - ⬇️ **Download card** — save the result (or gains) card as a PNG. The desktop counterpart to native sharing — handy for posting the image straight to X or Instagram, where image posts beat link cards.
 - ⚔️ **Live share counter** — "N scapers have shared their grind", backed by Supabase.
-- 📜 **Daily gains tracker** — save a snapshot of your XP, come back later, and see exactly how much you've gained. Generates a shareable gains card with motivational copy that scales with the grind ("Warming Up" → "Legendary"). Snapshots are stored in your browser's localStorage.
+- 📜 **Daily gains tracker** — save a snapshot of your XP, come back later, and see exactly how much you've gained. Generates a shareable gains card with your **top skills broken out** (icon + XP, up to 4) plus motivational copy that scales with the grind ("Warming Up" → "Legendary"). Snapshots are stored in your browser's localStorage.
 - 🎨 **Authentic OSRS UI** — RuneScape typeface, official skill sprites, riveted interface panels.
 - ✨ **Animated sprites** — a floating Max cape goal, bobbing coins, pulsing maxed-skill icons, and the in-game Max cape emote (with rising-coin confetti) when you've maxed.
 

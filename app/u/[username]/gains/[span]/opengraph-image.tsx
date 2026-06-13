@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parseSpan, formatPeriod, gainsMessage } from "@/lib/gains";
-import { formatNumber } from "@/lib/skills";
+import { parseSpan, formatPeriod, gainsMessage, formatXpShort } from "@/lib/gains";
+import { formatNumber, SKILLS } from "@/lib/skills";
 import { fetchHiscores } from "@/lib/hiscores";
 
 export const runtime = "nodejs";
@@ -47,6 +47,22 @@ export default async function Image({
   const xp = parsed?.xp ?? 0;
   const days = parsed?.days ?? 0;
   const tier = gainsMessage(xp);
+
+  // Per-skill breakdown chips, resolved from the span's skill keys to icons.
+  const iconDir = join(process.cwd(), "public/icons");
+  const chips = (parsed?.topSkills ?? [])
+    .map((sk) => {
+      const skill = SKILLS.find((s) => s.key === sk.key);
+      if (!skill) return null;
+      return {
+        name: skill.name,
+        text: `+${formatXpShort(sk.xp)}`,
+        iconSrc: `data:image/png;base64,${readFileSync(
+          join(iconDir, skill.icon)
+        ).toString("base64")}`,
+      };
+    })
+    .filter((c): c is { name: string; text: string; iconSrc: string } => c !== null);
   // satori requires single-child text nodes unless a div is display:flex,
   // so compose these lines as plain strings.
   const headerLine = `${name} · OSRS gains`;
@@ -105,6 +121,26 @@ export default async function Image({
           <div style={{ fontSize: 40, color: "#ffce5c", marginTop: 14 }}>
             {gainedLine}
           </div>
+          {chips.length > 0 ? (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 18 }}>
+              {chips.map((c) => (
+                <div
+                  key={c.name}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    background: "#2a2118",
+                    border: "2px solid #0c0905",
+                    padding: "6px 14px",
+                  }}
+                >
+                  <img src={c.iconSrc} width={34} height={34} alt="" />
+                  <div style={{ fontSize: 30, color: "#4bd44b" }}>{c.text}</div>
+                </div>
+              ))}
+            </div>
+          ) : null}
           <div
             style={{
               fontFamily: "RSBold",
