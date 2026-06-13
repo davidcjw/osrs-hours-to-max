@@ -637,10 +637,12 @@ export default function Calculator({
               <div>
                 <p className="rs-shadow text-sm text-[var(--rs-text-dim)]">
                   Tracking since{" "}
-                  {new Date(snapshot.savedAt).toLocaleDateString(undefined, {
+                  {new Date(snapshot.savedAt).toLocaleString(undefined, {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
                   })}{" "}
                   &middot; {formatPeriod(gains?.days ?? 0)}
                 </p>
