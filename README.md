@@ -1,5 +1,9 @@
 # OSRS Hours to Max ⏳
 
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![Live](https://img.shields.io/badge/demo-live-brightgreen)
+
 An Old School RuneScape **"hours to max"** calculator. Enter your username, pull
 your live stats from the official OSRS hiscores, set your XP/hr per skill (or use
 sensible community averages), and see exactly how many hours stand between you and
@@ -7,6 +11,12 @@ a maxed account.
 
 Built to look and feel like the in-game interface — real RuneScape fonts, skill
 icons, stone panels and a parchment scroll for the result.
+
+<p align="center">
+  <img src="docs/screenshot.png" alt="OSRS Hours to Max calculator — RuneScape-themed time-to-max UI" width="720">
+</p>
+
+> **Live:** [hourstomax.davidcjw.com](https://hourstomax.davidcjw.com)
 
 ## Features
 
@@ -108,3 +118,25 @@ sprites and item/emote graphics (`public/icons`, `public/sprites`) are from the
 [OSRS Wiki](https://oldschool.runescape.wiki/); the RuneScape fonts are from
 [RuneStar/fonts](https://github.com/RuneStar/fonts).
 Stats are read from the official OSRS hiscores. Provided free, for fun.
+
+## Contributing
+
+Contributions are welcome! Please open an issue first to discuss what you'd like to change.
+
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'feat: describe change'`)
+4. Push and open a pull request
+
+Please make sure `npm test`, `npm run lint`, and `npm run build` pass before submitting a PR.
+
+## Code of Conduct
+
+This project follows the [Contributor Covenant v2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
+By participating you agree to uphold a welcoming, harassment-free environment.
+
+## License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for details. The MIT
+license covers the project's source code; the third-party RuneScape fonts and
+OSRS Wiki sprites referenced above remain under their respective licenses.
