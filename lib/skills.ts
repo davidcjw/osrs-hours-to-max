@@ -4,8 +4,36 @@
 
 export const MAX_LEVEL = 99;
 export const MAX_SKILL_XP = 13_034_431; // XP required for level 99
+export const MAX_XP = 200_000_000; // OSRS per-skill XP hard cap (200M)
 export const SKILL_COUNT = 24; // includes Sailing (added 2025)
 export const MAX_TOTAL_XP = MAX_SKILL_XP * SKILL_COUNT; // 312,826,344
+
+/**
+ * Cumulative XP required to reach a given level, per the OSRS experience table.
+ * `xpForLevel(1) === 0` and `xpForLevel(99) === MAX_SKILL_XP` (13,034,431).
+ * Levels outside 1..99 are clamped into range.
+ */
+export function xpForLevel(level: number): number {
+  const lvl = Math.min(MAX_LEVEL, Math.max(1, Math.floor(level)));
+  let points = 0;
+  for (let n = 1; n < lvl; n++) {
+    points += Math.floor(n + 300 * Math.pow(2, n / 7));
+  }
+  return Math.floor(points / 4);
+}
+
+/**
+ * Highest level fully reached at the given XP (inverse of `xpForLevel`).
+ * Negative/unranked XP floors to level 1; caps at 99 (the max XP cape level).
+ */
+export function levelForXp(xp: number): number {
+  const clamped = Math.max(0, xp);
+  let level = 1;
+  while (level < MAX_LEVEL && xpForLevel(level + 1) <= clamped) {
+    level++;
+  }
+  return level;
+}
 
 /** A named training method with a representative XP/hr rate. */
 export interface Method {
